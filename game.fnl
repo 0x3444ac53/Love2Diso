@@ -1,27 +1,46 @@
+(local love (require :love))
 (local repl (require "lib.stdio"))
 
-(global state {})
+(global tileset (love.graphics.newImage "assets/spritesheet.png"))
+(global tiles {})
 
-; simple example printing "Hello World!"
-; use the arrow keys to move the label around
+
+(fn nil? [v] (= nil v))
+
+(fn loadTile [ID]
+  (tset tiles ID
+        (let [sy (* 32 (math.floor (/ ID 10)))
+              sx (* 32 (% ID 11))]
+          (love.graphics.newQuad sx sy 32 32 tileset)))
+  (. tiles ID))
+
+(fn drawTile [ID x y]
+  (let [tile (or (. tiles ID) (loadTile ID))]
+   (love.graphics.draw tileset
+                       tile
+                       (#(* (- x y) 16)) 
+                       (#(* (+ x y) 8)))))
+
 
 (fn love.load []
-  (set state.x 50)
-  (set state.y 100)
-  (set state.speed 300)
-  (repl.start)) ; this is important for the REPL to work
+  (love.window.setMode 800 600)
+  (let [canvas  (love.graphics.newCanvas 10000 10000)]
+    (love.graphics.setCanvas canvas)
+    (love.graphics.clear)
+    (let [m (love.filesystem.read "untitled.csv")]
+      (var x 0)
+      (var y -1)
+      (each [k v (string.gmatch m "([^\n]*)\n?")]
+        (set y (+ y 1))
+        (set x 0)
+        (each [k1 v1 (string.gmatch k "([^,]+)")]
+          (when (~= k1 "-1") (drawTile k1 x y))
+          (set x (+ x 1)))))
+   (love.graphics.setCanvas nil)
+   (set _G.canvas canvas))
+  (repl.start))
 
-(fn love.update [dt]
-  (let [isDown love.keyboard.isDown
-        delta (* state.speed dt)]
-    (when (isDown "right")
-      (set state.x (+ state.x delta)))
-    (when (isDown "left")
-      (set state.x (- state.x delta)))
-    (when (isDown "up")
-      (set state.y (- state.y delta)))
-    (when (isDown "down")
-      (set state.y (+ state.y delta)))))
+(fn love.update [dt])
 
 (fn love.draw []
-  (love.graphics.print "Hello World!" state.x state.y))
+  (love.graphics.draw _G.canvas 128 0))
