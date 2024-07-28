@@ -18,7 +18,7 @@
   (let [tile (or (. tiles ID) (loadTile ID))]
    (love.graphics.draw tileset
                        tile
-                       (#(* (- x y) 16)) 
+                       ( #(+ 400 (* (- x y) 16))) 
                        (#(* (+ x y) 8)))))
 
 
@@ -43,4 +43,4 @@
 (fn love.update [dt])
 
 (fn love.draw []
-  (love.graphics.draw _G.canvas 128 0))
+  (love.graphics.draw _G.canvas 0 0))
